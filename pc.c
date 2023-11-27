@@ -3,32 +3,32 @@
 #include <semaphore.h>
 #include <pthread.h>
 sem_t empty,full;
-pthread_mutex_t mutex;
+pthread_mutex_t mutex;	//mutual exclusion
 int buffer[5];
 int count=0;
 void *producer(void *args)
 {
 	long int num = (long int)args;
-	sem_wait(&empty);
+	sem_wait(&empty);	// wait is there are no empty slots
 	pthread_mutex_lock(&mutex);
 	buffer[count] = rand()%10;
 	printf("Producer %ld produced %d\n",num+1,buffer[count]);
 	count++;
 	sleep(1);
 	pthread_mutex_unlock(&mutex);
-	sem_post(&full);
+	sem_post(&full);	// signal consumer that one slot is produced
 	pthread_exit(NULL);
 }
 void *consumer(void *args)
 {
 	long int num = (long int)args;
-	sem_wait(&full);
+	sem_wait(&full);	// wait if there are no full slots
 	pthread_mutex_lock(&mutex);
 	count--;
 	printf("Consumer %ld consumed %d\n",num+1,buffer[count]);
 	sleep(1);
 	pthread_mutex_unlock(&mutex);
-	sem_post(&empty);
+	sem_post(&empty);	// signal producer that one slot is consumed
 	pthread_exit(NULL);
 }
 int main()
